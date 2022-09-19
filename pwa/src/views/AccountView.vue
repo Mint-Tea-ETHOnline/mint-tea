@@ -122,6 +122,10 @@ import ArrowDownBlue from "../assets/svgs/ArrowDownBlue.vue?component";
 /* Components */
 import NftCard from "@/components/NftCard.vue";
 
+
+/* Import Lit lib */
+import Lit from "./lit.js"
+
 /* Init Pinia Store Values and Methods */
 const store = useStore();
 const {
@@ -268,6 +272,16 @@ async function fetchTokens() {
     }
   }
 }
+
+/* encrypt an Attribute */
+async function encryptAttributes() {
+  /**
+   * Upload file and store using NFT.Storage
+   */
+  const strencypted = Lit.encryptString("str");
+  console.log("encryptedSymmetricKey = ",strencypted.encryptedSymmetricKey);
+};
+
 
 onMounted(async () => {
   window.scrollTo({
