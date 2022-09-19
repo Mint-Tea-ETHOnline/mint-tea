@@ -1,6 +1,6 @@
-//import {lit}  from "./lit.js";
-var {Lit} = require("./lit.js");
+/*import lit from "./lit.js"
+//var {Lit} = require("./lit.js");
 
-const strenc = Lit.encryptString("str");
+const strenc = lit.encryptString("str");
 
-console.log("encryptedSymmetricKey = ",strenc.encryptedSymmetricKey);
+console.log("encryptedSymmetricKey = ",strenc.encryptedSymmetricKey);*/

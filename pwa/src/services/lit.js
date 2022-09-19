@@ -1,5 +1,7 @@
 //import * as LitJsSdk from "lit-js-sdk";
-const LitJsSdk = require("lit-js-sdk") ;
+//const LitJsSdk = require("lit-js-sdk") ;
+//import LitJsSdk from "@lit-protocol/sdk-browser";
+import LitJsSdk from "@lit-protocol/sdk-nodejs";
 
 const client = new LitJsSdk.LitNodeClient()
 const chain = 'ethereum'
@@ -92,8 +94,8 @@ class Lit {
   }
 }
 
-//export default new Lit()
-module.exports.Lit = Lit;
+export default new Lit()
+//module.exports.Lit = Lit;
 /*module.exports = {
   Lit: Lit
 }*/

@@ -8,6 +8,8 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "@lit-protocol/sdk-browser": "^1.1.226",
+    "@lit-protocol/sdk-nodejs": "^1.1.226",
     "dotenv": "^16.0.2",
     "ethers": "^5.7.0",
     "lit-js-sdk": "^1.1.218",
