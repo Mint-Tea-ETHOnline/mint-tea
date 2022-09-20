@@ -38,14 +38,12 @@
 
           <!-- Account Tab -->
           <div v-if="account && formTab === 'account'" class="form-container">
-            <div class="header-logo">
-              <BlueLogo />
-            </div>
-            <h1>Account NFTs</h1>
+            <h1>Account</h1>
             <div class="input-row">
               <p>
-                Browse all your NFTs across all the best blockchains like
-                Ethereum, Polygon, Optimism and more coming soon...
+                Browse all your NFTs across all the best blockchains including
+                Ethereum, Polygon, Optimism, Arbitrum, Avalanche and more coming
+                soon...
               </p>
             </div>
             <div class="button-container">
@@ -54,6 +52,14 @@
               </button>
               <button class="explore-button">
                 <router-link :to="{ name: 'explore' }">Explore</router-link>
+              </button>
+            </div>
+            <div class="button-container">
+              <button @click="encryptAttributes()" class="lit-button">
+                LIT Encrypt
+              </button>
+              <button @click="deCryptAttributes()" class="lit-button">
+                LIT DeCrypt
               </button>
             </div>
           </div>
@@ -123,18 +129,18 @@ import { ref, onMounted } from "vue";
 import { storeToRefs } from "pinia";
 import { useStore } from "../store";
 
+/* Import Lit library */
+import { encryptString, decryptString } from "../services/lit.js";
+
 /* Import our IPFS and NftStorage Services */
 import authNFT from "../services/authNFT.js";
 
 /* Import SVG */
 import ArrowDownBlue from "../assets/svgs/ArrowDownBlue.vue?component";
+import BlueLogo from "../assets/svgs/BlueLogo.vue?component";
 
 /* Components */
 import NftCard from "@/components/NftCard.vue";
-
-
-/* Import Lit lib */
-import Lit from "./lit.js"
 
 /* Init Pinia Store Values and Methods */
 const store = useStore();
@@ -149,6 +155,17 @@ const {
 
 /* Set Form Tab */
 const formTab = ref("account");
+
+/* encrypt an Attribute */
+async function encryptAttributes() {
+  const strencypted = encryptString("str");
+  console.log("encryptedSymmetricKey : ", JSON.stringify(strencypted));
+}
+
+async function deCryptAttributes() {
+  const strencypted = decryptString("str");
+  console.log("encryptedSymmetricKey : ", JSON.stringify(strencypted));
+}
 
 /**
  * Check if our Wallet is Connected to 🦊 Metamask
@@ -296,16 +313,6 @@ async function fetchTokens() {
     }
   }
 }
-
-/* encrypt an Attribute */
-async function encryptAttributes() {
-  /**
-   * Upload file and store using NFT.Storage
-   */
-  const strencypted = Lit.encryptString("str");
-  console.log("encryptedSymmetricKey = ",strencypted.encryptedSymmetricKey);
-};
-
 
 onMounted(async () => {
   window.scrollTo({
@@ -548,6 +555,23 @@ section#mint {
         &:hover {
           color: $black;
         }
+      }
+    }
+
+    .lit-button {
+      color: $white;
+      background-color: $mint-orange;
+      font-size: 18px;
+      font-weight: bold;
+      width: 100%;
+      height: 55px;
+      border: 0;
+      border-radius: 30px;
+      margin: 10px 1% 10px 0;
+      transition: 0.4s;
+      cursor: pointer;
+      &:hover {
+        color: $mint-blue;
       }
     }
   }

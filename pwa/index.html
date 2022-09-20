@@ -8,6 +8,15 @@
   </head>
   <body>
     <div id="app"></div>
+    <script>
+      function litJsSdkLoaded() {
+        var litNodeClient = new LitJsSdk.LitNodeClient()
+        litNodeClient.connect()
+        window.litNodeClient = litNodeClient
+      }
+  
+    </script>
+    <script onload='litJsSdkLoaded()' src="https://jscdn.litgateway.com/index.web.js"></script>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

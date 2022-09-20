@@ -18,6 +18,7 @@ export default defineConfig(({ command, mode }) => {
       // vite config
       define: {
         __APP_ENV__: env.APP_ENV,
+        global: {},
       },
       plugins: [vue(), eslint(), svgLoader()],
       server: {
@@ -28,6 +29,7 @@ export default defineConfig(({ command, mode }) => {
           "@": fileURLToPath(new URL("./src", import.meta.url)),
         },
       },
+      jsxInject: [`import LitJsSdk from 'lit-js-sdk'`],
     };
   } else {
     // command === 'build'
@@ -35,6 +37,7 @@ export default defineConfig(({ command, mode }) => {
       // vite config
       define: {
         __APP_ENV__: env.APP_ENV,
+        global: {},
       },
       plugins: [vue(), eslint(), svgLoader()],
       server: {
@@ -45,6 +48,7 @@ export default defineConfig(({ command, mode }) => {
           "@": fileURLToPath(new URL("./src", import.meta.url)),
         },
       },
+      jsxInject: [`import LitJsSdk from 'lit-js-sdk' `],
     };
   }
 });
