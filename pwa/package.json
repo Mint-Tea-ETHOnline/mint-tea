@@ -8,8 +8,11 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "@lit-protocol/sdk-browser": "^1.1.226",
+    "@lit-protocol/sdk-nodejs": "^1.1.226",
     "dotenv": "^16.0.2",
     "ethers": "^5.7.0",
+    "lit-js-sdk": "^1.1.218",
     "pinia": "^2.0.17",
     "vue": "^3.2.37",
     "vue-router": "^4.1.3"
