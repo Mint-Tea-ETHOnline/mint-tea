@@ -97,15 +97,17 @@ section#about {
   width: 100%;
   color: $mint-black;
   display: flex;
-  flex-direction: row;
+  flex-direction: row wrap;
   align-content: center;
   align-items: center;
   justify-content: center;
   padding: 0;
-  background: url("./brewtubebottom.svg") no-repeat,
-    linear-gradient(91deg, #fbe2ff 45.95%, rgba(251, 226, 255, 0) 99.2%);
-  background-position: 42% 77%;
-  background-size: auto;
+  background: linear-gradient(
+    91deg,
+    #fbe2ff 45.95%,
+    rgba(251, 226, 255, 0) 99.2%
+  );
+  overflow: hidden;
 
   @include breakpoint($break-sm) {
     flex-direction: column;
@@ -129,11 +131,11 @@ section#about {
     }
     @include breakpoint($break-sm) {
       width: 100%;
-      padding: 4em 0 4em 7em;
+      padding: 1em 0 0 1.5em;
     }
     @include breakpoint($break-xs) {
       width: 100%;
-      padding: 4em 0 4em 4em;
+      padding: 1em 0 0 1em;
     }
 
     .row-header {
@@ -258,18 +260,23 @@ section#about {
       width: 100%;
       border-top-left-radius: 30px;
       border-top-right-radius: 30px;
-      padding: 2em 1em;
+      padding: 1em;
     }
     @include breakpoint($break-xs) {
       width: 100%;
       border-top-left-radius: 30px;
       border-top-right-radius: 30px;
-      padding: 1.5em 10px;
+      padding: 1em 10px;
     }
     .sponsors-box {
       position: absolute;
       bottom: 6.5em;
-      right: 37%;
+      right: 33%;
+      @include breakpoint($break-lg) {
+        position: absolute;
+        bottom: 5em;
+        right: 20%;
+      }
       @include breakpoint($break-md) {
         position: absolute;
         bottom: 5em;

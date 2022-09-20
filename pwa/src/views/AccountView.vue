@@ -101,6 +101,16 @@
               </template>
             </div>
           </div>
+          <div class="row">
+            <div class="row-header">
+              <h2>Avalanche <ArrowDownBlue class="arrow-down" /></h2>
+            </div>
+            <div v-if="avalancheTokens.length > 0" class="row token-list">
+              <template v-for="token in avalancheTokens" :key="token.tokenId">
+                <NftCard v-if="token.metadata" :token="token" />
+              </template>
+            </div>
+          </div>
         </section>
       </aside>
     </section>
@@ -134,6 +144,7 @@ const {
   polygonTokens,
   optimismTokens,
   arbitrumTokens,
+  avalancheTokens,
 } = storeToRefs(store);
 
 /* Set Form Tab */
@@ -255,7 +266,7 @@ async function fetchTokens() {
       //   store.addOptimismTokens(...optimismTestnetTokens);
       // }
       /* Arbitrum */
-      // if (optimismTokens.value.length === 0) {
+      // if (arbitrumTokens.value.length === 0) {
       //   let arbitrumTokens = await authAccount.fetchAccountNfts(
       //     42161,
       //     account.value
@@ -266,6 +277,19 @@ async function fetchTokens() {
       //     account.value
       //   );
       //   store.addArbitrumTokens(...arbitrumTestnetTokens);
+      // }
+      /* Avalanche */
+      // if (avalancheTokens.value.length === 0) {
+      //   let avalancheTokens = await authAccount.fetchAccountNfts(
+      //     42161,
+      //     account.value
+      //   );
+      //   store.addAvalancheTokens(...avalancheTokens);
+      //   let avalancheTestnetTokens = await authAccount.fetchAccountNfts(
+      //     42161,
+      //     account.value
+      //   );
+      //   store.addAvalancheTokens(...avalancheTestnetTokens);
       // }
     } catch (error) {
       console.log(`Error fetching tokens, please refresh to try again!`);
