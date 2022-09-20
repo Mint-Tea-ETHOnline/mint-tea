@@ -128,6 +128,18 @@ The Interplanetary File System (IPFS) is a decentralized file system for buildin
 
 NFT.Storage is a long-term storage service designed for off-chain NFT data (like metadata, images, and other assets). Data is content addressed using IPFS, meaning the URI pointing to a piece of data (“ipfs://…”) is completely unique to that data (using a content identifier, or CID). IPFS URLs and CIDs can be used in NFTs and metadata to ensure the NFT forever actually refers to the intended data (eliminating things like rug pulls, and making it trustlessly verifiable what content an NFT is associated with).
 
+### Lit Protocol
+
+Lit Protocol is an open source, decentralized utility that uses encryption to provide blockchain users access to digital and real world experiences.
+Main Functionality:
+-Encrypt and lock static content (images, videos, music, etc) behind an on chain condition (for example, possession of an NFT).
+-Decrypt static content that was locked behind an on chain condition.
+-Authorize network signatures that provide access to dynamic content (for example, a server or network resource) behind an on chain condition.
+-Request a network signed JWT that provisions access and authorization to dynamic content behind an on chain condition.
+use cases:
+- NFT card games where each player don't want others to see certain properties in his or her NFT until the card is played.
+- User can hide their NFT attribute (encrypted) and give a permission to a third party contract(example game contract) or other address to decrypt this attribute
+
 ## Technology Stack
 
 The 🍵 Mint Tea web3 application uses the following technologies in it's software life cycle:
