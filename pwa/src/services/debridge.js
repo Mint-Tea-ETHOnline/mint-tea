@@ -141,28 +141,38 @@ export const bridge = async (
  * @param {number} chainIdTo
  */
 export const getTxStatus = async (txHash, chainIdFrom, chainIdTo) => {
-  const evmOriginContext = {
-    provider: rpcNodes[chainIdFrom],
-  };
+  console.log(txHash, chainIdFrom, chainIdTo);
+  // TODO:
+  try {
+    const evmOriginContext = {
+      provider: rpcNodes[chainIdFrom],
+    };
 
-  const submissions = await evm.Submission.findAll(txHash, evmOriginContext);
+    const submissions = await evm.Submission.findAll(txHash, evmOriginContext);
 
-  const evmDestinationContext = {
-    provider: rpcNodes[chainIdTo],
-  };
+    const evmDestinationContext = {
+      provider: rpcNodes[chainIdTo],
+    };
 
-  const [submission] = submissions;
-  const claim = await submission.toEVMClaim(evmDestinationContext);
-  const minRequiredSignatures = await claim.getRequiredSignaturesCount();
+    const [submission] = submissions;
+    const isConfirmed = await submission.hasRequiredBlockConfirmations();
+    if (!isConfirmed) {
+      // TODO
+      return [0, 0];
+    }
+    // TODO: CORS error on arbitrum rpc node.
+    const claim = await submission.toEVMClaim(evmDestinationContext);
+    const minRequiredSignatures = await claim.getRequiredSignaturesCount();
 
-  const isConfirmed = await submission.hasRequiredBlockConfirmations();
+    if (!isConfirmed) {
+      return [0, minRequiredSignatures];
+    }
 
-  if (!isConfirmed) {
-    return [0, minRequiredSignatures];
+    const signatures = await claim.getSignatures();
+    return [signatures.length, minRequiredSignatures];
+  } catch {
+    return [0, 0];
   }
-
-  const signatures = await claim.getSignatures();
-  return [signatures.length, minRequiredSignatures];
 };
 
 /**

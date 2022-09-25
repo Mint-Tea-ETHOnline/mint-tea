@@ -50,14 +50,22 @@
               </p>
             </div>
 
-            <div v-if="canClaim" class="bridge-claim">
+            <div v-if="waitingClaim" class="bridge-claim">
+              <p v-if="claimStatusText">
+                deBridge confirmations:<br />
+                {{ claimStatusText }}
+              </p>
               <div class="button-container">
-                <button class="claim-button" @click="claimDebridgeTx()">
+                <button
+                  class="claim-button"
+                  :disabled="claimStatusText !== ''"
+                  @click="claimDebridgeTx()"
+                >
                   Claim NFT
                 </button>
               </div>
             </div>
-            <div v-if="!canClaim">
+            <div v-if="!waitingClaim">
               <div class="select-row">
                 <label class="black">Bridge From</label>
 
@@ -84,7 +92,6 @@
                 <select
                   class="bridge-to-chain"
                   v-model="bridgeTo"
-                  :disabled="!approvedBridge"
                   @change="updateBridgeTo($event)"
                 >
                   <option
@@ -102,13 +109,13 @@
                 </span>
               </div>
               <div class="button-container">
-                <button
+                <!-- <button
                   class="bridge-button-left"
                   @click="bridgeNFT()"
                   :disabled="!approvedBridge"
                 >
                   bridge
-                </button>
+                </button> -->
                 <button class="back-button" @click="switchTab('mint')">
                   back
                 </button>
@@ -417,7 +424,7 @@
               !imageUrlBridge &&
               showBridgeTokens &&
               formTab === 'bridge' &&
-              !canClaim
+              !waitingClaim
             "
             class="nft-bridge-tokens"
           >
@@ -629,7 +636,8 @@ const showBridgeTokens = ref(false);
 const fileRef = ref(null);
 
 /* Claim Ref */
-const canClaim = ref(false);
+const waitingClaim = ref(false);
+const claimStatusText = ref("");
 
 /* Timer Ref */
 const timer = ref(null);
@@ -669,11 +677,11 @@ const approvedMint = ref(false);
 /* Bridge Fields and Data */
 const bridgeFrom = ref("polygon");
 const bridgeFromOptions = ref([
-  { value: 1, label: "ethereum", text: "ethereum" },
+  // { value: 1, label: "ethereum", text: "ethereum" },
   // { value: 5, label: "ethereum-testnet", text: "Ethereum Testnet" },
   { value: 137, label: "polygon", text: "polygon" },
   // { value: 80001, label: "polygon-testnet", text: "Mumbai Testnet" },
-  { value: 10, label: "optimism", text: "optimism" },
+  // { value: 10, label: "optimism", text: "optimism" },
   // { value: 69, label: "optimism-testnet", text: "Optimism Testnet" },
   { value: 42161, label: "arbitrum", text: "arbitrum" },
   // { value: 421611, label: "arbitrum-testnet", text: "Arbitrum Testnet" },
@@ -682,17 +690,17 @@ const bridgeFromOptions = ref([
 ]);
 const bridgeTo = ref("arbitrum");
 const bridgeToOptions = ref([
-  { value: 1, label: "ethereum", text: "ethereum" },
+  // { value: 1, label: "ethereum", text: "ethereum" },
   // { value: 5, label: "ethereum-testnet", text: "Ethereum Testnet" },
   { value: 137, label: "polygon", text: "polygon" },
   // { value: 80001, label: "polygon-testnet", text: "Mumbai Testnet" },
-  { value: 10, label: "optimism", text: "optimism" },
+  // { value: 10, label: "optimism", text: "optimism" },
   // { value: 69, label: "optimism-testnet", text: "Optimism Testnet" },
   { value: 42161, label: "arbitrum", text: "arbitrum" },
   // { value: 421611, label: "arbitrum-testnet", text: "Arbitrum Testnet" },
   { value: 43114, label: "avalanche", text: "avalanche" },
   // { value: 421611, label: "avalanche-testnet", text: "Arbitrum Testnet" },
-  { value: 0, label: "all", text: "select all" },
+  // { value: 0, label: "all", text: "select all" },
 ]);
 
 /* Bridge NFT Details */
@@ -751,6 +759,7 @@ async function fetchTokens() {
           137,
           account.value
         );
+        console.log(polygonTokens);
         store.addPolygonTokens(...polygonTokens);
       }
 
@@ -1784,18 +1793,23 @@ const bridgeNFT = async (token) => {
       if (receipt.status === 1) {
         console.log("ok");
         const { txHash, chainIdFrom, chainIdTo } = getTxInfo();
-
-        timer.value = setInterval(function () {
-          const [signatureNum, requiredNum] = getTxStatus(
+        waitingClaim.value = true;
+        timer.value = setInterval(async () => {
+          const [signatureNum, requiredNum] = await getTxStatus(
             txHash,
             chainIdFrom,
             chainIdTo
           );
           console.log(signatureNum, requiredNum);
-          if (signatureNum >= requiredNum) {
-            clearInterval(timer.value);
-            canClaim.value = true;
-            console.log("You can claim!!!");
+          if (!requiredNum) {
+            claimStatusText.value = "Wating block confirmation...";
+          } else {
+            claimStatusText.value = `${signatureNum} / ${requiredNum}`;
+            if (signatureNum >= requiredNum) {
+              clearInterval(timer.value);
+              claimStatusText.value = "";
+              console.log("You can claim!!!");
+            }
           }
         }, 1000);
       }
@@ -1831,12 +1845,12 @@ const claimDebridgeTx = async () => {
     params: [{ chainId: BigNumber.from(chainIdTo).toHexString() }],
   });
 
-  const receipt = claim(txHash, chainIdFrom, chainIdTo);
+  const receipt = await claim(txHash, chainIdFrom, chainIdTo);
 
   /* Check our Transaction results */
   if (receipt.status === 1) {
     console.log("ok");
-    canClaim.value = false;
+    waitingClaim.value = false;
   }
 };
 
@@ -1914,6 +1928,7 @@ onMounted(async () => {
 
   const { txHash, chainIdFrom, chainIdTo } = getTxInfo();
   if (txHash) {
+    waitingClaim.value = true;
     timer.value = setInterval(async () => {
       console.log("polling debridge tx status");
       console.log(txHash, chainIdFrom, chainIdTo);
@@ -1923,10 +1938,15 @@ onMounted(async () => {
         chainIdTo
       );
       console.log(signatureNum, requiredNum);
-      if (signatureNum >= requiredNum) {
-        clearInterval(timer.value);
-        canClaim.value = true;
-        console.log("You can claim!!!");
+      if (!requiredNum) {
+        claimStatusText.value = "Wating block confirmation...";
+      } else {
+        claimStatusText.value = `${signatureNum} / ${requiredNum}`;
+        if (signatureNum >= requiredNum) {
+          clearInterval(timer.value);
+          claimStatusText.value = "";
+          console.log("You can claim!!!");
+        }
       }
     }, 1000);
   }
@@ -2526,6 +2546,11 @@ section#content {
     &:hover {
       color: $mint-black;
     }
+  }
+  .claim-button:disabled {
+    background: #c6c6c6;
+    color: #101010;
+    cursor: not-allowed;
   }
   .back-button {
     color: $white;
