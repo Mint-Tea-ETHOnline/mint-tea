@@ -1,14 +1,5 @@
 <template>
-  <div
-    v-if="
-      (token && token.metadata) ||
-      token.metadata.title ||
-      token.metadata.name ||
-      token.metadata.image ||
-      token.metadata.description
-    "
-    class="nft"
-  >
+  <div class="nft">
     <div
       v-if="token.metadata && getUrlProtocol(token.metadata.image) === 'mp4'"
       class="nft-video"
@@ -41,6 +32,10 @@
     </div>
     <div v-if="token.metadata && token.metadata.title" class="nft-title">
       {{ token.metadata.title }}
+    </div>
+    <div v-if="!token.metadata" class="nft-title">
+      token ID:
+      {{ token.tokenId }}
     </div>
     <!-- <div
       v-if="token.metadata && token.metadata.description"
