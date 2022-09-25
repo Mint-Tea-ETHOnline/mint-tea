@@ -563,7 +563,7 @@
   </main>
 </template>
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onBeforeUnmount } from "vue";
 /* Import Libraries */
 import { ethers, BigNumber } from "ethers";
 import moment from "moment";
@@ -580,7 +580,12 @@ import authNFT from "../services/authNFT.js";
 import alchemyApi from "../services/alchemyApi.js";
 
 /* Import our deBridge Services */
-import { bridge } from "../services/debridge.js";
+import {
+  bridge,
+  getTxHash as getDebridgeTxHash,
+  getTxStatus,
+  claim,
+} from "../services/debridge.js";
 
 /* Import SVGs */
 import BlueLogo from "../assets/svgs/BlueLogo.vue?component";
@@ -628,6 +633,9 @@ const showBridgeTokens = ref(false);
 
 /* File Uploader Ref */
 const fileRef = ref(null);
+
+/* Timer Ref */
+const timer = ref(null);
 
 /* NFT Form Metadata fields */
 const tokenId = ref("");
@@ -1799,7 +1807,22 @@ const bridgeNFT = async () => {
       /* Check our Transaction results */
       if (receipt.status === 1) {
         console.log("ok");
+        const txHash = getDebridgeTxHash();
+
+        timer.value = setInterval(function () {
+          const [signatureNum, requiredNum] = getTxStatus(
+            txHash,
+            chainIdFrom,
+            chainIdTo
+          );
+          console.log(signatureNum, requiredNum);
+          if (signatureNum >= requiredNum) {
+            clearInterval(timer.value);
+            console.log("You can claim!!!");
+          }
+        }, 1000);
       }
+
       /* Stop bridging */
       store.setBridging(false);
       return;
@@ -1812,6 +1835,31 @@ const bridgeNFT = async () => {
     /* Stop bridging */
     store.setBridging(false);
     console.log("error", error);
+  }
+};
+
+/**
+ * Claim debridge Tx
+ */
+// eslint-disable-next-line no-unused-vars
+const claimDebridgeTx = async () => {
+  const { ethereum } = window;
+  if (!ethereum) {
+    throw Error();
+  }
+  // TODO:
+  const chainIdFrom = 137;
+  const chainIdTo = 42161;
+  await ethereum.request({
+    method: "wallet_switchEthereumChain",
+    params: [{ chainId: BigNumber.from(chainIdTo).toHexString() }],
+  });
+  const txHash = getDebridgeTxHash();
+  const receipt = claim(txHash, chainIdFrom, chainIdTo);
+
+  /* Check our Transaction results */
+  if (receipt.status === 1) {
+    console.log("ok");
   }
 };
 
@@ -1885,6 +1933,30 @@ onMounted(async () => {
     } catch (error) {
       console.log(error);
     }
+  }
+
+  // TODO:
+  const txHash = getDebridgeTxHash();
+  if (txHash) {
+    timer.value = setInterval(async () => {
+      console.log("polling debridge tx status");
+
+      const [signatureNum, requiredNum] = await getTxStatus(txHash, 137, 42161);
+      console.log(signatureNum, requiredNum);
+      if (signatureNum >= requiredNum) {
+        clearInterval(timer.value);
+        console.log("You can claim!!!");
+      }
+    }, 3000);
+    // setTimeout(() => {
+    //   console.log("clear interval");
+    //   clearInterval(timer.value);
+    // }, 3000);
+  }
+});
+onBeforeUnmount(() => {
+  if (timer.value) {
+    clearInterval(timer.value);
   }
 });
 </script>

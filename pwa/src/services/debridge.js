@@ -34,10 +34,10 @@ const storeTxHash = (txHash) => {
     localStorage.removeItem(TX_HASH_LOCAL_STORAGE_KEY);
   }
 };
-const getTxHash = () => {
+export const getTxHash = () => {
   /* Store this for the Front-end to read txn */
-  const store = useStore();
-  store.getTxHashKey();
+  // const store = useStore();
+  // store.getTxHashKey();
   /* Use local storage to persist state or reload of browser */
   return localStorage.getItem(TX_HASH_LOCAL_STORAGE_KEY);
 };
@@ -123,9 +123,9 @@ export const bridge = async (
     }
   );
 
-  const result = await tx.wait();
-  storeTxHash(result.transactionHash);
-  return result;
+  const receipt = await tx.wait();
+  storeTxHash(receipt.transactionHash);
+  return receipt;
 };
 
 /**
@@ -151,30 +151,29 @@ export const getTxStatus = async (txHash, chainIdFrom, chainIdTo) => {
   const isConfirmed = await submission.hasRequiredBlockConfirmations();
 
   if (!isConfirmed) {
-    return 0, minRequiredSignatures;
+    return [0, minRequiredSignatures];
   }
 
   const signatures = await claim.getSignatures();
-  return signatures.length, minRequiredSignatures;
+  return [signatures.length, minRequiredSignatures];
 };
 
 /**
- * @param {string} nftContractAddress
- * @param {string} tokenId
+ * @param {string} txHash
  * @param {number} chainIdFrom
  * @param {number} chainIdTo
  */
-export const claim = async (chainIdFrom, chainIdTo) => {
+export const claim = async (txHash, chainIdFrom, chainIdTo) => {
   const { ethereum } = window;
-  if (!ethereum) {
+  if (!ethereum || !txHash || !chainIdFrom || !chainIdTo) {
     throw Error();
   }
 
-  if (isSupported(chainIdFrom)) {
+  if (!isSupported(chainIdFrom)) {
     throw Error(`chain Id: ${chainIdFrom} is not supported`);
   }
 
-  if (isSupported(chainIdTo)) {
+  if (!isSupported(chainIdTo)) {
     throw Error(`chain Id: ${chainIdTo} is not supported`);
   }
 
@@ -182,13 +181,8 @@ export const claim = async (chainIdFrom, chainIdTo) => {
     provider: rpcNodes[chainIdFrom],
   };
 
-  const txHash = getTxHash();
-  if (!txHash) {
-    throw Error();
-  }
-
   const submissions = await evm.Submission.findAll(txHash, evmOriginContext);
-
+  console.log(submissions);
   if (submissions.length === 0 || submissions.length > 1) {
     throw Error();
   }
@@ -231,10 +225,10 @@ export const claim = async (chainIdFrom, chainIdTo) => {
   );
 
   const tx = await deBridgeGate.claim(...claimArgs);
-  await tx.wait();
+  const receipt = await tx.wait();
 
-  // TODO: should clear txHash if succeeded.
-  // storeTxHash(null);
-
-  return;
+  if (receipt.status === 1) {
+    storeTxHash(null);
+  }
+  return receipt;
 };
