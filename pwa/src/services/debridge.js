@@ -1,7 +1,6 @@
 import { ethers } from "ethers";
 import { DEFAULT_DEBRIDGE_GATE_ADDRESS } from "@debridge-finance/desdk/lib/evm/context";
 import { evm } from "@debridge-finance/desdk";
-import { useStore } from "../store";
 
 const NFT_BRIDGE_ADDRESS = "0x320Af97E6E8C580D6850890C81fd7161a3332C71";
 const REFERRAL_CODE = 0;
@@ -21,25 +20,33 @@ const isSupported = (chainId) => {
 
 // TODO: how should manage txHash?
 // not the best solution...
-const TX_HASH_LOCAL_STORAGE_KEY = "debridge_tx_hash";
-const storeTxHash = (txHash) => {
-  const store = useStore();
-  /* Store this for the Front-end to read txn */
-  store.setTxHashKey(TX_HASH_LOCAL_STORAGE_KEY);
-  store.setTxHash(txHash);
+const TX_HASH_LOCAL_STORAGE_KEY = "debridge_tx_info";
+const storeTxInfo = (txHash, chainIdFrom, chainIdTo) => {
+  // const store = useStore();
+  // /* Store this for the Front-end to read txn */
+  // store.setTxHashKey(TX_HASH_LOCAL_STORAGE_KEY);
+  // store.setTxHash(txHash);
   /* Use local storage to persist state or reload of browser */
   if (txHash) {
-    localStorage.setItem(TX_HASH_LOCAL_STORAGE_KEY, txHash);
+    localStorage.setItem(
+      TX_HASH_LOCAL_STORAGE_KEY,
+      JSON.stringify({ txHash, chainIdFrom, chainIdTo })
+    );
   } else {
     localStorage.removeItem(TX_HASH_LOCAL_STORAGE_KEY);
   }
 };
-export const getTxHash = () => {
+export const getTxInfo = () => {
   /* Store this for the Front-end to read txn */
   // const store = useStore();
   // store.getTxHashKey();
   /* Use local storage to persist state or reload of browser */
-  return localStorage.getItem(TX_HASH_LOCAL_STORAGE_KEY);
+  const content = localStorage.getItem(TX_HASH_LOCAL_STORAGE_KEY);
+  if (content) {
+    return JSON.parse(localStorage.getItem(TX_HASH_LOCAL_STORAGE_KEY));
+  } else {
+    return { txHash: null, chainIdFrom: null, chainIdTo: null };
+  }
 };
 
 /**
@@ -124,7 +131,7 @@ export const bridge = async (
   );
 
   const receipt = await tx.wait();
-  storeTxHash(receipt.transactionHash);
+  storeTxInfo(receipt.transactionHash, chainIdFrom, chainIdTo);
   return receipt;
 };
 
@@ -207,7 +214,7 @@ export const claim = async (txHash, chainIdFrom, chainIdTo) => {
     throw Error("Not yet signed!");
   }
   if (isExecuted) {
-    storeTxHash(null);
+    storeTxInfo(null, null, null);
     throw Error("Already excuted!");
   }
 
@@ -228,7 +235,7 @@ export const claim = async (txHash, chainIdFrom, chainIdTo) => {
   const receipt = await tx.wait();
 
   if (receipt.status === 1) {
-    storeTxHash(null);
+    storeTxInfo(null, null, null);
   }
   return receipt;
 };

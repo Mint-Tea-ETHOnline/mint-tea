@@ -49,60 +49,70 @@
                 destination chain and locked on the chain of origin.
               </p>
             </div>
-            <div class="select-row">
-              <label class="black">Bridge From</label>
 
-              <select
-                class="bridge-from-chain"
-                v-model="bridgeFrom"
-                :disabled="approvedBridge"
-                @change="updateBridgeFrom($event)"
-              >
-                <option
-                  v-for="option in bridgeFromOptions"
-                  :value="option.label"
-                  :key="option.key"
-                >
-                  {{ option.text }}
-                </option>
-              </select>
-              <span class="bridge-step-one">
-                STEP 1: Select the chain you choose to bridge from
-              </span>
+            <div v-if="canClaim" class="bridge-claim">
+              <div class="button-container">
+                <button class="claim-button" @click="claimDebridgeTx()">
+                  Claim NFT
+                </button>
+              </div>
             </div>
-            <div class="select-row">
-              <label class="black">Bridge To</label>
-              <select
-                class="bridge-to-chain"
-                v-model="bridgeTo"
-                :disabled="!approvedBridge"
-                @change="updateBridgeTo($event)"
-              >
-                <option
-                  v-for="option in bridgeToOptions"
-                  :value="option.label"
-                  :key="option.key"
+            <div v-if="!canClaim">
+              <div class="select-row">
+                <label class="black">Bridge From</label>
+
+                <select
+                  class="bridge-from-chain"
+                  v-model="bridgeFrom"
+                  :disabled="approvedBridge"
+                  @change="updateBridgeFrom($event)"
                 >
-                  {{ option.text }}
-                </option>
-              </select>
-              <span class="bridge-step-one">
-                STEP 2: Select your token and approve the token to prepare it
-                for bridge transfer. Please ensure you keep your browser window
-                open to complete the bridging process.
-              </span>
-            </div>
-            <div class="button-container">
-              <button
-                class="bridge-button-left"
-                @click="bridgeNFT()"
-                :disabled="!approvedBridge"
-              >
-                bridge
-              </button>
-              <button class="back-button" @click="switchTab('mint')">
-                back
-              </button>
+                  <option
+                    v-for="option in bridgeFromOptions"
+                    :value="option.label"
+                    :key="option.key"
+                  >
+                    {{ option.text }}
+                  </option>
+                </select>
+                <span class="bridge-step-one">
+                  STEP 1: Select the chain you choose to bridge from
+                </span>
+              </div>
+              <div class="select-row">
+                <label class="black">Bridge To</label>
+                <select
+                  class="bridge-to-chain"
+                  v-model="bridgeTo"
+                  :disabled="!approvedBridge"
+                  @change="updateBridgeTo($event)"
+                >
+                  <option
+                    v-for="option in bridgeToOptions"
+                    :value="option.label"
+                    :key="option.key"
+                  >
+                    {{ option.text }}
+                  </option>
+                </select>
+                <span class="bridge-step-one">
+                  STEP 2: Select your token and approve the token to prepare it
+                  for bridge transfer. Please ensure you keep your browser
+                  window open to complete the bridging process.
+                </span>
+              </div>
+              <div class="button-container">
+                <button
+                  class="bridge-button-left"
+                  @click="bridgeNFT()"
+                  :disabled="!approvedBridge"
+                >
+                  bridge
+                </button>
+                <button class="back-button" @click="switchTab('mint')">
+                  back
+                </button>
+              </div>
             </div>
           </div>
           <!-- END Bridge Tab -->
@@ -403,7 +413,12 @@
           </div>
           <!-- Pull Tokens by Account to Bridge -->
           <div
-            v-if="!imageUrlBridge && showBridgeTokens && formTab === 'bridge'"
+            v-if="
+              !imageUrlBridge &&
+              showBridgeTokens &&
+              formTab === 'bridge' &&
+              !canClaim
+            "
             class="nft-bridge-tokens"
           >
             <div v-if="bridgeFrom === 'ethereum'" class="row">
@@ -412,7 +427,7 @@
               </div>
               <div v-if="ethereumTokens.length > 0" class="row token-list">
                 <template v-for="token in ethereumTokens" :key="token.contract">
-                  <NftCard :token="token" @click="loadNFTDetails(token)" />
+                  <NftCard :token="token" @click="bridgeNFT(token)" />
                 </template>
               </div>
             </div>
@@ -422,7 +437,7 @@
               </div>
               <div v-if="polygonTokens.length > 0" class="row token-list">
                 <template v-for="token in polygonTokens" :key="token.contract">
-                  <NftCard :token="token" @click="loadNFTDetails(token)" />
+                  <NftCard :token="token" @click="bridgeNFT(token)" />
                 </template>
               </div>
             </div>
@@ -432,7 +447,7 @@
               </div>
               <div v-if="optimismTokens.length > 0" class="row token-list">
                 <template v-for="token in optimismTokens" :key="token.contract">
-                  <NftCard :token="token" @click="loadNFTDetails(token)" />
+                  <NftCard :token="token" @click="bridgeNFT(token)" />
                 </template>
               </div>
             </div>
@@ -442,10 +457,7 @@
               </div>
               <div v-if="arbitrumTokens.length > 0" class="row token-list">
                 <template v-for="token in arbitrumTokens" :key="token.contract">
-                  <ArbitrumNftCard
-                    :token="token"
-                    @click="loadNFTDetails(token)"
-                  />
+                  <NftCard :token="token" @click="bridgeNFT(token)" />
                 </template>
               </div>
             </div>
@@ -458,7 +470,7 @@
                   v-for="token in avalancheTokens"
                   :key="token.contract"
                 >
-                  <NftCard :token="token" @click="loadNFTDetails(token)" />
+                  <NftCard :token="token" @click="bridgeNFT(token)" />
                 </template>
               </div>
             </div>
@@ -566,12 +578,7 @@ import authNFT from "../services/authNFT.js";
 import alchemyApi from "../services/alchemyApi.js";
 
 /* Import our deBridge Services */
-import {
-  bridge,
-  getTxHash as getDebridgeTxHash,
-  getTxStatus,
-  claim,
-} from "../services/debridge.js";
+import { bridge, getTxInfo, getTxStatus, claim } from "../services/debridge.js";
 
 /* Import SVGs */
 import BlueLogo from "../assets/svgs/BlueLogo.vue?component";
@@ -580,7 +587,7 @@ import ArrowDownBlue from "../assets/svgs/ArrowDownBlue.vue?component";
 
 /* Components */
 import NftCard from "@/components/NftCard.vue";
-import ArbitrumNftCard from "@/components/ArbitrumNftCard.vue";
+// import ArbitrumNftCard from "@/components/ArbitrumNftCard.vue";
 import CollectionSection from "@/components/CollectionSection.vue";
 import AboutSection from "@/components/AboutSection.vue";
 
@@ -620,6 +627,9 @@ const showBridgeTokens = ref(false);
 
 /* File Uploader Ref */
 const fileRef = ref(null);
+
+/* Claim Ref */
+const canClaim = ref(false);
 
 /* Timer Ref */
 const timer = ref(null);
@@ -693,6 +703,7 @@ const imageUrlBridge = ref(null);
 const approvedBridge = ref(false);
 
 /* Load our Bridge NFT to approve */
+// eslint-disable-next-line no-unused-vars
 function loadNFTDetails(token) {
   console.log("Bridge Token Loaded:", token);
   if (token.tokenId || token.token_id) {
@@ -746,13 +757,13 @@ async function fetchTokens() {
       /* We use Alchemy API for these */
       const authAlchemyAccount = new alchemyApi();
       /* Optimism */
-      if (optimismTokens.value.length === 0) {
-        let optimismTokens = await authAlchemyAccount.fetchAccountNfts(
-          10,
-          account.value
-        );
-        store.addOptimismTokens(...optimismTokens);
-      }
+      // if (optimismTokens.value.length === 0) {
+      //   let optimismTokens = await authAlchemyAccount.fetchAccountNfts(
+      //     10,
+      //     account.value
+      //   );
+      //   store.addOptimismTokens(...optimismTokens);
+      // }
       /* Arbitrum */
       if (arbitrumTokens.value.length === 0) {
         let arbitrumTokens = await authAlchemyAccount.fetchAccountNfts(
@@ -1737,7 +1748,7 @@ const updateTraitValue = async (attribute) => {
 /**
  * Bridge NFT
  */
-const bridgeNFT = async () => {
+const bridgeNFT = async (token) => {
   /* Start bridging */
   store.setLoading(false);
   store.setBridging(true);
@@ -1760,8 +1771,8 @@ const bridgeNFT = async () => {
         params: [{ chainId: BigNumber.from(chainIdFrom).toHexString() }],
       });
 
-      const nftContractAddress = contractAddressBridge.value;
-      const tokenId = tokenIdBridge.value;
+      const nftContractAddress = token.contract.address || token.contract; //contractAddressBridge.value;
+      const tokenId = token.tokenId; //tokenIdBridge.value;
       const receipt = await bridge(
         nftContractAddress,
         tokenId,
@@ -1772,7 +1783,7 @@ const bridgeNFT = async () => {
       /* Check our Transaction results */
       if (receipt.status === 1) {
         console.log("ok");
-        const txHash = getDebridgeTxHash();
+        const { txHash, chainIdFrom, chainIdTo } = getTxInfo();
 
         timer.value = setInterval(function () {
           const [signatureNum, requiredNum] = getTxStatus(
@@ -1783,6 +1794,7 @@ const bridgeNFT = async () => {
           console.log(signatureNum, requiredNum);
           if (signatureNum >= requiredNum) {
             clearInterval(timer.value);
+            canClaim.value = true;
             console.log("You can claim!!!");
           }
         }, 1000);
@@ -1812,19 +1824,19 @@ const claimDebridgeTx = async () => {
   if (!ethereum) {
     throw Error();
   }
-  // TODO:
-  const chainIdFrom = 137;
-  const chainIdTo = 42161;
+
+  const { txHash, chainIdFrom, chainIdTo } = getTxInfo();
   await ethereum.request({
     method: "wallet_switchEthereumChain",
     params: [{ chainId: BigNumber.from(chainIdTo).toHexString() }],
   });
-  const txHash = getDebridgeTxHash();
+
   const receipt = claim(txHash, chainIdFrom, chainIdTo);
 
   /* Check our Transaction results */
   if (receipt.status === 1) {
     console.log("ok");
+    canClaim.value = false;
   }
 };
 
@@ -1900,23 +1912,23 @@ onMounted(async () => {
     }
   }
 
-  // TODO:
-  const txHash = getDebridgeTxHash();
+  const { txHash, chainIdFrom, chainIdTo } = getTxInfo();
   if (txHash) {
     timer.value = setInterval(async () => {
       console.log("polling debridge tx status");
-
-      const [signatureNum, requiredNum] = await getTxStatus(txHash, 137, 42161);
+      console.log(txHash, chainIdFrom, chainIdTo);
+      const [signatureNum, requiredNum] = await getTxStatus(
+        txHash,
+        chainIdFrom,
+        chainIdTo
+      );
       console.log(signatureNum, requiredNum);
       if (signatureNum >= requiredNum) {
         clearInterval(timer.value);
+        canClaim.value = true;
         console.log("You can claim!!!");
       }
-    }, 3000);
-    // setTimeout(() => {
-    //   console.log("clear interval");
-    //   clearInterval(timer.value);
-    // }, 3000);
+    }, 1000);
   }
 });
 onBeforeUnmount(() => {
@@ -2499,6 +2511,22 @@ section#content {
     }
   }
 
+  .claim-button {
+    color: $white;
+    background-color: $mint-blue;
+    font-size: 18px;
+    font-weight: bold;
+    width: 100%;
+    height: 55px;
+    border: 0;
+    border-radius: 30px;
+    margin: 10px 1% 10px 0;
+    transition: 0.4s;
+    cursor: pointer;
+    &:hover {
+      color: $mint-black;
+    }
+  }
   .back-button {
     color: $white;
     background-color: $mint-black;
