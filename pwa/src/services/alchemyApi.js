@@ -19,53 +19,52 @@ export default class alchemyApi {
       let settings = {};
       if (chainId === 1) {
         settings = {
-          apiKey: ethereumAPI,
+          apiKey: `"${ethereumAPI}"`,
           network: Network.ETH_MAINNET,
         };
       } else if (chainId === 137) {
         settings = {
-          apiKey: polygonAPI,
+          apiKey: `"${polygonAPI}"`,
           network: Network.MATIC_MAINNET,
         };
       } else if (chainId === 10) {
         settings = {
-          apiKey: optimismAPI,
+          apiKey: `${optimismAPI}`,
           network: Network.OPT_MAINNET,
         };
       } else if (chainId === 42161) {
         settings = {
-          apiKey: arbitrumAPI,
+          apiKey: `${arbitrumAPI}`,
           network: Network.ARB_MAINNET,
         };
       }
       const alchemy = new Alchemy(settings);
       try {
         /* Get the latest block */
-        const latestBlock = await alchemy.core.getBlockNumber();
-        console.log("Latest Block: ", latestBlock);
+        // const latestBlock = await alchemy.core.getBlockNumber();
+        // console.log("Latest Block: ", latestBlock);
 
         /* Get all outbound transfers for a provided address */
         /* Get token balances */
-        const balances = await alchemy.core
-          .getTokenBalances(accountAddress)
-          .then(console.log);
-        console.log("balances: ", balances);
+        // await alchemy.core.getTokenBalances(accountAddress).then(console.log);
 
         // Get all the NFTs owned by an address
         const nfts = await alchemy.nft.getNftsForOwner(accountAddress);
-        console.log("Nfts : ", nfts);
+
+        // Listen to all new pending transactions
+        if (chainId !== 10) {
+          await alchemy.ws.on(
+            {
+              method: "alchemy_pendingTransactions",
+              fromAddress: accountAddress,
+            },
+            (res) => console.log(res)
+          );
+        }
         if (nfts.totalCount > 0) {
           return nfts.ownedNfts;
         }
-
-        // Listen to all new pending transactions
-        await alchemy.ws.on(
-          {
-            method: "alchemy_pendingTransactions",
-            fromAddress: accountAddress,
-          },
-          (res) => console.log(res)
-        );
+        return nfts;
       } catch (error) {
         console.error(error);
         throw error;

@@ -1,9 +1,18 @@
 <template>
-  <div class="music-nft">
+  <div
+    v-if="
+      token.metadata ||
+      token.metadata.title ||
+      token.metadata.name ||
+      token.metadata.image ||
+      token.metadata.description
+    "
+    class="music-nft"
+  >
     <div v-if="token.metadata && token.metadata.name" class="music-nft-title">
       {{ token.metadata.name }}
     </div>
-    <div class="music-nft-video">
+    <div v-if="token.metadata && token.metadata.image" class="music-nft-video">
       <video width="400" controls>
         <source :src="getUrlProtocol(token.metadata.image)" type="video/mp4" />
       </video>

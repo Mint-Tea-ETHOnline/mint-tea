@@ -1,122 +1,57 @@
 <template>
   <div
     v-if="
-      (token && token.cached_file_url) ||
-      token.mint_date ||
+      (token && token.title) ||
       token.name ||
-      token.description ||
-      token.chain ||
-      token.contract ||
-      token.contract_address
+      token.tokenUri.raw ||
+      token.description
     "
-    class="search-nft"
+    class="nft"
   >
     <div
-      v-if="
-        token.cached_file_url && getUrlProtocol(token.cached_file_url) === 'mp4'
-      "
-      class="search-nft-video"
+      v-if="token && getUrlProtocol(token.tokenUri.raw) === 'mp4'"
+      class="nft-video"
     >
       <video width="320" height="240" controls>
-        <source :src="getUrlProtocol(token.cached_file_url)" type="video/mp4" />
-        <!-- <source :src="`${token.cached_file_url}`" type="video/ogg" /> -->
+        <source :src="token.tokenUri.raw" type="video/mp4" />
+        <!-- <source :src="`${token.tokenUri.raw}`" type="video/ogg" /> -->
         Your browser does not support the video tag.
       </video>
     </div>
     <div
-      v-if="
-        token.cached_file_url && getUrlProtocol(token.cached_file_url) === 'mp3'
-      "
-      class="search-nft-video"
+      v-if="token && getUrlProtocol(token.tokenUri.raw) === 'mp3'"
+      class="nft-video"
     >
       <video width="320" height="240" controls>
-        <source :src="getUrlProtocol(token.cached_file_url)" type="video/mp4" />
-        <!-- <source :src="`${token.cached_file_url}`" type="video/ogg" /> -->
+        <source :src="getUrlProtocol(token.tokenUri.raw)" type="video/mp4" />
+        <!-- <source :src="`${token.tokenUri.raw}`" type="video/ogg" /> -->
         Your browser does not support the video tag.
       </video>
     </div>
-    <div
-      v-else-if="token.name && token.cached_file_url"
-      class="search-nft-image"
-    >
+    <div v-else-if="token && token.tokenUri.raw" class="nft-image">
       <img
-        v-if="token.cached_file_url"
-        :src="`${getUrlProtocol(token.cached_file_url)}`"
+        v-if="token.tokenUri.raw"
+        :src="`${getUrlProtocol(token.tokenUri.raw)}`"
         :alt="`${token.name}`"
       />
     </div>
-    <div v-if="token.mint_date" class="search-nft-description">
-      Mint Date: {{ token.mint_date }}
+    <div v-if="token && token.title" class="nft-title">
+      {{ token.title }}
     </div>
-    <div v-if="token.chain" class="search-nft-description">
-      Blockchain: {{ token.chain }}
-    </div>
-    <div v-if="token.name" class="search-nft-title">
-      {{ token.name }}
-    </div>
-    <div v-if="token.description" class="search-nft-description">
+    <!-- <div
+      v-if="token && token.description"
+      class="nft-description"
+    >
       {{ token.description }}
-    </div>
-    <div v-if="token.contract" class="search-nft-description">
-      {{ token.contract ? token.contract : token.contract_address }}
-    </div>
+    </div> -->
   </div>
 </template>
 <script>
 /* Import our IPFS and NftStorage Services */
 import { generateLink } from "../services/helpers";
-
-// Body
-// application/json
-// response
-// string
-// required
-// Response status, either OK or NOK.
-
-// Allowed values:
-// OK
-// NOK
-// search_results
-// array[TextSearchNft]
-// chain
-// string
-// required
-// Blockchain where the NFT has been minted.
-
-// Allowed values:
-// polygon
-// ethereum
-// contract_address
-// string
-// required
-// The contract address of the NFT.
-
-// token_id
-// string
-// required
-// A unique uint256 ID inside the contract. The contract address and token ID pair is a globally unique and fully-qualified identifier for a specific NFT on chain.
-
-// cached_file_url
-// string
-// required
-// Cached file (image, video, etc) in NFTPort's cloud with no access restrictions and without IPFS issues.
-
-// name
-// string
-// required
-// Name of the NFT in the metadata.
-
-// description
-// string
-// required
-// Description of the NFT in the metadata.
-
-// mint_date
-// string
-// Date when the NFT was minted (ISO).
 /* LFG */
 export default {
-  name: "SearchCard",
+  name: "NftCard",
   props: ["token"],
   methods: {
     getUrlProtocol(url) {
@@ -153,15 +88,15 @@ export default {
 @import "../assets/styles/variables.scss";
 @import "../assets/styles/mixins.scss";
 
-.search-nft {
+.nft {
   display: inline;
   float: left;
   box-sizing: border-box;
-  width: 300px;
+  width: 230px;
   background: #f4f4f4;
   border: 2px solid #f4f4f4;
   border-radius: 15px;
-  margin: 0 auto 25px;
+  margin: 0 13px 25px 13px;
   padding: 10px;
   transition: 0.4s;
   cursor: pointer;
@@ -171,10 +106,10 @@ export default {
     padding: 20px 20px 10px;
   }
   @include breakpoint($break-sm) {
-    width: 100;
+    width: 380px;
   }
   @include breakpoint($break-xs) {
-    width: 100%;
+    width: 380px;
     margin: 0 auto 20px;
   }
 
@@ -182,14 +117,14 @@ export default {
     border: 2px solid #8d50f5;
   }
 
-  .search-nft-video {
+  .nft-video {
     width: 100%;
     margin: 0 auto;
     padding: 0;
     overflow: hidden;
     background: #f4f4f4;
   }
-  .search-nft-image {
+  .nft-image {
     width: 100%;
     margin: 0 auto;
     padding: 0;
@@ -201,10 +136,19 @@ export default {
       height: 100%;
       object-fit: contain;
       overflow: hidden;
+      @include breakpoint($break-md) {
+        width: 360px;
+      }
+      @include breakpoint($break-sm) {
+        width: 320px;
+      }
+      @include breakpoint($break-xs) {
+        width: 300px;
+      }
     }
   }
 
-  .search-nft-title {
+  .nft-title {
     color: #1a1a1a;
     width: 100%;
     font-size: 14px;
@@ -214,7 +158,7 @@ export default {
     margin: 10px 0 0 0;
   }
 
-  .search-nft-description {
+  .nft-description {
     color: #1a1a1a;
     width: 100%;
     font-size: 12px;

@@ -41,16 +41,17 @@
             <h1>Bridge NFT</h1>
             <div class="input-row">
               <p>
-                Bridge your favourite NFTs to all the top chains to maximise
-                your exposure using our NFT bridge.
+                Bridge your top NFTs to all the best blockchains to maximise
+                your exposure.
               </p>
               <p>
-                Your NFT will be minted as a wrapped mNFT on the target chain
-                and locked on the chain of origin.
+                Your NFT will be minted as a wrapped NFT token on the
+                destination chain and locked on the chain of origin.
               </p>
             </div>
             <div class="select-row">
               <label class="black">Bridge From</label>
+
               <select
                 class="bridge-from-chain"
                 v-model="bridgeFrom"
@@ -66,8 +67,7 @@
                 </option>
               </select>
               <span class="bridge-step-one">
-                Select where you would like to bridge your tokens from in the
-                below dropdown
+                STEP 1: Select the chain you choose to bridge from
               </span>
             </div>
             <div class="select-row">
@@ -87,9 +87,9 @@
                 </option>
               </select>
               <span class="bridge-step-one">
-                Click on your token from the list and then approve the token to
-                lock it for bridge transfer. Make sure to keep your browser
-                window open to complete the process.
+                STEP 2: Select your token and approve the token to prepare it
+                for bridge transfer. Please ensure you keep your browser window
+                open to complete the bridging process.
               </span>
             </div>
             <div class="button-container">
@@ -411,12 +411,8 @@
                 <h2>Ethereum <ArrowDownBlue class="arrow-down" /></h2>
               </div>
               <div v-if="ethereumTokens.length > 0" class="row token-list">
-                <template v-for="token in ethereumTokens" :key="token.tokenId">
-                  <NftCard
-                    v-if="token.metadata"
-                    :token="token"
-                    @click="loadNFTDetails(token)"
-                  />
+                <template v-for="token in ethereumTokens" :key="token.contract">
+                  <NftCard :token="token" @click="loadNFTDetails(token)" />
                 </template>
               </div>
             </div>
@@ -425,12 +421,8 @@
                 <h2>Polygon <ArrowDownBlue class="arrow-down" /></h2>
               </div>
               <div v-if="polygonTokens.length > 0" class="row token-list">
-                <template v-for="token in polygonTokens" :key="token.tokenId">
-                  <NftCard
-                    v-if="token.metadata"
-                    :token="token"
-                    @click="loadNFTDetails(token)"
-                  />
+                <template v-for="token in polygonTokens" :key="token.contract">
+                  <NftCard :token="token" @click="loadNFTDetails(token)" />
                 </template>
               </div>
             </div>
@@ -439,12 +431,8 @@
                 <h2>Optimism <ArrowDownBlue class="arrow-down" /></h2>
               </div>
               <div v-if="optimismTokens.length > 0" class="row token-list">
-                <template v-for="token in optimismTokens" :key="token.tokenId">
-                  <NftCard
-                    v-if="token.metadata"
-                    :token="token"
-                    @click="loadNFTDetails(token)"
-                  />
+                <template v-for="token in optimismTokens" :key="token.contract">
+                  <NftCard :token="token" @click="loadNFTDetails(token)" />
                 </template>
               </div>
             </div>
@@ -453,9 +441,8 @@
                 <h2>Arbitrum <ArrowDownBlue class="arrow-down" /></h2>
               </div>
               <div v-if="arbitrumTokens.length > 0" class="row token-list">
-                <template v-for="token in arbitrumTokens" :key="token.tokenId">
-                  <NftCard
-                    v-if="token.metadata"
+                <template v-for="token in arbitrumTokens" :key="token.contract">
+                  <ArbitrumNftCard
                     :token="token"
                     @click="loadNFTDetails(token)"
                   />
@@ -467,12 +454,11 @@
                 <h2>Avalanche <ArrowDownBlue class="arrow-down" /></h2>
               </div>
               <div v-if="avalancheTokens.length > 0" class="row token-list">
-                <template v-for="token in avalancheTokens" :key="token.tokenId">
-                  <NftCard
-                    v-if="token.metadata"
-                    :token="token"
-                    @click="loadNFTDetails(token)"
-                  />
+                <template
+                  v-for="token in avalancheTokens"
+                  :key="token.contract"
+                >
+                  <NftCard :token="token" @click="loadNFTDetails(token)" />
                 </template>
               </div>
             </div>
@@ -594,6 +580,7 @@ import ArrowDownBlue from "../assets/svgs/ArrowDownBlue.vue?component";
 
 /* Components */
 import NftCard from "@/components/NftCard.vue";
+import ArbitrumNftCard from "@/components/ArbitrumNftCard.vue";
 import CollectionSection from "@/components/CollectionSection.vue";
 import AboutSection from "@/components/AboutSection.vue";
 
@@ -746,24 +733,14 @@ async function fetchTokens() {
           account.value
         );
         store.addEthereumTokens(...ethereumTokens);
-        // let ethereumTestnetTokens = await authAccount.fetchAccountNfts(
-        //   5,
-        //   account.value
-        // );
-        // store.addEthereumTokens(...ethereumTestnetTokens);
       }
+      /* Polygon */
       if (polygonTokens.value.length === 0) {
-        /* Polygon */
         let polygonTokens = await authAccount.fetchAccountNfts(
           137,
           account.value
         );
         store.addPolygonTokens(...polygonTokens);
-        // let polygonTestnetTokens = await authAccount.fetchAccountNfts(
-        //   0x13881,
-        //   account.value
-        // );
-        // store.addPolygonTokens(...polygonTestnetTokens);
       }
 
       /* We use Alchemy API for these */
@@ -774,13 +751,7 @@ async function fetchTokens() {
           10,
           account.value
         );
-        console.log("optimismTokens:", optimismTokens);
         store.addOptimismTokens(...optimismTokens);
-        // let optimismTestnetTokens = await authAlchemyAccount.fetchAccountNfts(
-        //   69,
-        //   account.value
-        // );
-        // store.addOptimismTokens(...optimismTestnetTokens);
       }
       /* Arbitrum */
       if (arbitrumTokens.value.length === 0) {
@@ -788,13 +759,7 @@ async function fetchTokens() {
           42161,
           account.value
         );
-        console.log("arbitrumTokens:", arbitrumTokens);
         store.addArbitrumTokens(...arbitrumTokens);
-        // let arbitrumTestnetTokens = await authAlchemyAccount.fetchAccountNfts(
-        //   42161,
-        //   account.value
-        // );
-        // store.addArbitrumTokens(...arbitrumTestnetTokens);
       }
       /* Avalanche */
       // if (avalancheTokens.value.length === 0) {
